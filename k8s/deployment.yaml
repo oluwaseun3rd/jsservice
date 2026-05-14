@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: js-service
+  namespace: apps
+  labels:
+    app: js-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: js-service
+  template:
+    metadata:
+      labels:
+        app: js-service
+    spec:
+      containers:
+        - name: js-service
+          image: js-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ENV
+              valueFrom:
+                secretKeyRef:
+                  name: app-config
+                  key: ENV
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
